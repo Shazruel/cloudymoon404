@@ -1,6 +1,8 @@
 {
   "name": "cloudmoon-mirror",
   "version": "1.0.0",
+  "description": "Stable Mirror for Cloudmoon",
+  "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
