@@ -6,21 +6,27 @@
     <title>Cloudmoon Mirror</title>
     <style>
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background-color: #000; }
+        #wrapper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         iframe { width: 100%; height: 100%; border: none; }
     </style>
 </head>
 <body>
-    <iframe 
-        src="https://cloudmoonapp.pages.dev/" 
-        id="mirrorFrame"
-        sandbox="allow-forms allow-scripts allow-same-origin allow-popups allow-presentation"
-        allowfullscreen>
-    </iframe>
+    <div id="wrapper">
+        <iframe 
+            src="https://cloudmoonapp.pages.dev/" 
+            id="mirrorFrame"
+            sandbox="allow-forms allow-scripts allow-same-origin allow-presentation"
+            allowfullscreen>
+        </iframe>
+    </div>
 
     <script>
-        // This script attempts to prevent the "Top" window from being redirected
+        // This blocks the app from trying to force-open a new window to the main site
+        const frame = document.getElementById('mirrorFrame');
+        
+        // Trap the 'beforeunload' to prevent the main tab from redirecting
         window.onbeforeunload = function() {
-            return "Are you sure you want to leave this page?";
+            return "Preventing redirect to blocked site...";
         };
     </script>
 </body>
