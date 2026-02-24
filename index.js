@@ -8,6 +8,7 @@ app.use('/', createProxyMiddleware({
     changeOrigin: true,
     selfHandleResponse: true,
     onProxyReq: (proxyReq, req, res) => {
+        // Stop the "Download" issue by requesting uncompressed text
         proxyReq.setHeader('accept-encoding', 'identity');
     },
     onProxyRes: (proxyRes, req, res) => {
@@ -34,7 +35,7 @@ app.use('/', createProxyMiddleware({
             });
         } else {
             // For CSS, JS, and Images, just pipe them through directly
-            // This prevents the "White Screen" issue
+            // This prevents the "White Screen" by not corrupting binary files
             proxyRes.pipe(res);
         }
     }
