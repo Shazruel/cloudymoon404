@@ -1,32 +1,31 @@
 const express = require('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
-const responseRewrite = require('express-showdown-rewrite'); // We'll add this to package.json
 
 const app = express();
 
 app.use('/', createProxyMiddleware({ 
     target: 'https://cloudmoonapp.pages.dev', 
     changeOrigin: true,
-    selfHandleResponse: true, // Necessary to modify the HTML
+    selfHandleResponse: true, // This allows us to edit the HTML
     onProxyRes: (proxyRes, req, res) => {
         let body = [];
         proxyRes.on('data', (chunk) => body.push(chunk));
         proxyRes.on('end', () => {
-            body = Buffer.concat(body).toString();
+            let html = Buffer.concat(body).toString();
             
-            // This injects "Business & Technology" tags into the head of the page
+            // Injecting Business/Tech keywords to trick the filters
             const techMetadata = `
-                <title>Enterprise Cloud Solutions | Business Technology Portal</title>
-                <meta name="description" content="Secure enterprise cloud computing and professional technology infrastructure for business scaling.">
-                <meta name="keywords" content="Cloud Computing, SaaS, Enterprise, Business Technology, Software Engineering">
+                <title>Enterprise Cloud Infrastructure | Tech Solutions</title>
+                <meta name="description" content="Professional cloud computing and business technology services.">
             `;
             
-            // Replace the original title/meta with our "safe" ones
-            const modifiedBody = body.replace('<head>', '<head>' + techMetadata);
+            // Put our fake business info at the top of the head
+            html = html.replace('<head>', '<head>' + techMetadata);
             
-            res.end(modifiedBody);
+            res.end(html);
         });
     }
 }));
 
-app.listen(process.env.PORT || 3000);
+const port = process.env.PORT || 3000;
+app.listen(port);
