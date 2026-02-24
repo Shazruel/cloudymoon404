@@ -3,43 +3,23 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 
 const app = express();
 
+const TARGET_URL = 'https://cloudmoonapp.pages.dev';
+
 app.use('/', createProxyMiddleware({ 
-    target: 'https://cloudmoonapp.pages.dev', 
+    target: TARGET_URL, 
     changeOrigin: true,
-    selfHandleResponse: true,
-    onProxyReq: (proxyReq, req, res) => {
-        // Stop the "Download" issue by requesting uncompressed text
-        proxyReq.setHeader('accept-encoding', 'identity');
+    followRedirects: true, // Forces redirects to stay inside your URL
+    autoRewrite: true,     // Rewrites the location headers automatically
+    headers: {
+        'Referer': TARGET_URL,
+        'Origin': TARGET_URL
     },
     onProxyRes: (proxyRes, req, res) => {
-        const contentType = proxyRes.headers['content-type'] || '';
-        
-        // ONLY intercept and edit if it's an HTML page
-        if (contentType.includes('text/html')) {
-            let body = [];
-            proxyRes.on('data', (chunk) => body.push(chunk));
-            proxyRes.on('end', () => {
-                let html = Buffer.concat(body).toString();
-                
-                const techMetadata = `
-                    <title>Enterprise Cloud Infrastructure | Tech Solutions</title>
-                    <meta name="description" content="Professional cloud computing and business technology services.">
-                `;
-                
-                if (html.includes('<head>')) {
-                    html = html.replace('<head>', '<head>' + techMetadata);
-                }
-                
-                res.setHeader('Content-Type', 'text/html');
-                res.end(html);
-            });
-        } else {
-            // For CSS, JS, and Images, just pipe them through directly
-            // This prevents the "White Screen" by not corrupting binary files
-            proxyRes.pipe(res);
-        }
+        // Remove security headers that prevent the site from loading in frames/popups
+        delete proxyRes.headers['content-security-policy'];
+        delete proxyRes.headers['x-frame-options'];
     }
 }));
 
 const port = process.env.PORT || 3000;
-app.listen(port);
+app.listen(port, () => console.log(`Proxy live on port ${port}`));
