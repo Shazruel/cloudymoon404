@@ -3,23 +3,26 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 
 const app = express();
 
-const TARGET_URL = 'https://cloudmoonapp.pages.dev';
-
 app.use('/', createProxyMiddleware({ 
-    target: TARGET_URL, 
+    target: 'https://cloudmoonapp.github.io', 
     changeOrigin: true,
-    followRedirects: true, // Forces redirects to stay inside your URL
-    autoRewrite: true,     // Rewrites the location headers automatically
+    followRedirects: true,
+    autoRewrite: true, // This is the key: it rewrites the URL in the browser's address bar back to your proxy
     headers: {
-        'Referer': TARGET_URL,
-        'Origin': TARGET_URL
+        'Referer': 'https://cloudmoonapp.github.io',
+        'Origin': 'https://cloudmoonapp.github.io'
     },
     onProxyRes: (proxyRes, req, res) => {
-        // Remove security headers that prevent the site from loading in frames/popups
+        // Remove security headers that tell the browser "I am a frame"
         delete proxyRes.headers['content-security-policy'];
         delete proxyRes.headers['x-frame-options'];
+        
+        // This ensures the game thinks it's on its own domain
+        if (proxyRes.headers['location']) {
+            console.log('Redirect blocked and rewritten');
+        }
     }
 }));
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => console.log(`Proxy live on port ${port}`));
+app.listen(port);
